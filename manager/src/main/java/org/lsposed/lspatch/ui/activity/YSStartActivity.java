@@ -44,7 +44,9 @@ public class YSStartActivity extends Activity {
 
         new Handler(Looper.getMainLooper()).postDelayed(()->{
             if (!isDestroyed()){
-                GlobalUserHandler.mHandler = getSystemService(UserManager.class).getUserProfiles();
+                try {
+                    GlobalUserHandler.mHandler = getSystemService(UserManager.class).getUserProfiles();
+                }catch (Throwable ignored){ }
                 if (GlobalUserHandler.mHandler == null){
                     GlobalUserHandler.mHandler = new ArrayList<>();
                     GlobalUserHandler.mHandler.add(UserHandle.getUserHandleForUid(Os.getuid()));
@@ -70,6 +72,7 @@ public class YSStartActivity extends Activity {
                 new Handler(Looper.getMainLooper()).postDelayed(()->setAlpha2(ysStartView), 10);
             }else {
                 Intent intent = new Intent(YSStartActivity.this, MainActivity.class);
+                intent.putExtra("tag",YSStartActivity.class.getName());
                 startActivity(intent);
                 finish();
             }
