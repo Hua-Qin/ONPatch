@@ -122,7 +122,7 @@ public class SigBypass {
                     if (packageName.equals(param.args[0])) {
                         ApplicationInfo info = (ApplicationInfo) param.getResult();
                         info.sourceDir = sourceDir;
-                        info.publicSourceDir = sourceDir;
+                        info.publicSourceDir = resourcesDir;
                     }
                 }
             });
@@ -132,7 +132,7 @@ public class SigBypass {
                     if (packageName.equals(param.args[0])) {
                         ApplicationInfo info = (ApplicationInfo) param.getResult();
                         info.sourceDir = sourceDir;
-                        info.publicSourceDir = sourceDir;
+                        info.publicSourceDir = resourcesDir;
                     }
                 }
             });

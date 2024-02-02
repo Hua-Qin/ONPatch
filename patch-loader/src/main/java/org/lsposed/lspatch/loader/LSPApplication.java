@@ -64,7 +64,7 @@ public class LSPApplication {
 
     private static ActivityThread activityThread;
     private static LoadedApk stubLoadedApk;
-    private static LoadedApk appLoadedApk;
+    //private static LoadedApk appLoadedApk;
 
     private static PatchConfig config;
 
@@ -119,7 +119,7 @@ public class LSPApplication {
             XposedBridge.setLogPrinter(new XposedLogPrinter(0,"OPatch"));
         }
         Log.i(TAG, "Load modules");
-        LSPLoader.initModules(appLoadedApk);
+        LSPLoader.initModules(stubLoadedApk);
         Log.i(TAG, "Modules initialized");
 
         switchAllClassLoader();
@@ -191,14 +191,10 @@ public class LSPApplication {
 
             cacheApkPath.toFile().setWritable(false);
 
-            var mPackages = (Map<?, ?>) XposedHelpers.getObjectField(activityThread, "mPackages");
-            mPackages.remove(appInfo.packageName);
-            appLoadedApk = activityThread.getPackageInfoNoCheck(appInfo, compatInfo);
-
 
 
             if (config.injectProvider){
-                ClassLoader loader = appLoadedApk.getClassLoader();
+                ClassLoader loader = stubLoadedApk.getClassLoader();
                 Object dexPathList = XposedHelpers.getObjectField(loader, "pathList");
                 Object dexElements = XposedHelpers.getObjectField(dexPathList, "dexElements");
                 int length = Array.getLength(dexElements);
@@ -212,32 +208,6 @@ public class LSPApplication {
                 Array.set(newElements, length, element);
                 XposedHelpers.setObjectField(dexPathList, "dexElements", newElements);
             }
-
-
-
-
-            XposedHelpers.setObjectField(mBoundApplication, "info", appLoadedApk);
-
-            var activityClientRecordClass = XposedHelpers.findClass("android.app.ActivityThread$ActivityClientRecord", ActivityThread.class.getClassLoader());
-            var fixActivityClientRecord = (BiConsumer<Object, Object>) (k, v) -> {
-                if (activityClientRecordClass.isInstance(v)) {
-                    var pkgInfo = XposedHelpers.getObjectField(v, "packageInfo");
-                    if (pkgInfo == stubLoadedApk) {
-                        Log.d(TAG, "fix loadedapk from ActivityClientRecord");
-                        XposedHelpers.setObjectField(v, "packageInfo", appLoadedApk);
-                    }
-                }
-            };
-            var mActivities = (Map<?, ?>) XposedHelpers.getObjectField(activityThread, "mActivities");
-            mActivities.forEach(fixActivityClientRecord);
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    var mLaunchingActivities = (Map<?, ?>) XposedHelpers.getObjectField(activityThread, "mLaunchingActivities");
-                    mLaunchingActivities.forEach(fixActivityClientRecord);
-                }
-            } catch (Throwable ignored) {
-            }
-            Log.i(TAG, "hooked app initialized: " + appLoadedApk);
 
             var context = (Context) XposedHelpers.callStaticMethod(Class.forName("android.app.ContextImpl"), "createAppContext", activityThread, stubLoadedApk);
             if (config.appComponentFactory != null) {
@@ -322,12 +292,12 @@ public class LSPApplication {
     }
 
     private static void switchAllClassLoader() {
-        var fields = LoadedApk.class.getDeclaredFields();
-        for (Field field : fields) {
-            if (field.getType() == ClassLoader.class) {
-                var obj = XposedHelpers.getObjectField(appLoadedApk, field.getName());
-                XposedHelpers.setObjectField(stubLoadedApk, field.getName(), obj);
-            }
-        }
+//        var fields = LoadedApk.class.getDeclaredFields();
+//        for (Field field : fields) {
+//            if (field.getType() == ClassLoader.class) {
+//                var obj = XposedHelpers.getObjectField(appLoadedApk, field.getName());
+//                XposedHelpers.setObjectField(stubLoadedApk, field.getName(), obj);
+//            }
+//        }
     }
 }

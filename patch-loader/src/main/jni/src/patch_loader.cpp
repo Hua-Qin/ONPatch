@@ -98,11 +98,9 @@ namespace lspd {
 
         auto stub = JNI_FindClass(env, "org/lsposed/lspatch/metaloader/LSPAppComponentFactoryStub");
         auto dex_field = JNI_GetStaticFieldID(env, stub, "dex", "[B");
-        auto boot_field = JNI_GetStaticFieldID(env, stub, "boot", "Ljava/lang/ClassLoader;");
 
         ScopedLocalRef<jbyteArray> array = JNI_GetStaticObjectField(env, stub, dex_field);
         auto dex = PreloadedDex {env->GetByteArrayElements(array.get(), nullptr), static_cast<size_t>(JNI_GetArrayLength(env, array))};
-        auto boot = JNI_GetStaticObjectField(env, stub, boot_field);
 
         InitArtHooker(env, initInfo);
         LoadDex(env, std::move(dex));
