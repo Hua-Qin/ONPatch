@@ -19,6 +19,7 @@
 
         <activity
             android:name="org.lsposed.lspatch.ui.activity.YSStartActivity"
+            android:resizeableActivity="true"
             android:screenOrientation="landscape"
             android:exported="true">
             <intent-filter>

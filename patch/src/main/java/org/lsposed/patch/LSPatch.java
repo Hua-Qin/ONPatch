@@ -19,6 +19,7 @@ import com.google.gson.Gson;
 import com.wind.meditor.core.ManifestEditor;
 import com.wind.meditor.property.AttributeItem;
 import com.wind.meditor.property.ModificationProperty;
+import com.wind.meditor.utils.Log;
 import com.wind.meditor.utils.NodeValue;
 
 import org.apache.commons.io.FilenameUtils;
@@ -312,11 +313,22 @@ public class LSPatch {
 
             for (StoredEntry entry : srcZFile.entries()) {
                 String name = entry.getCentralDirectoryHeader().getName();
-                if (name.startsWith("classes") && name.endsWith(".dex")) continue;
-                if (dstZFile.get(name) != null) continue;
-                if (name.equals("AndroidManifest.xml")) continue;
-                if (name.startsWith("META-INF") && (name.endsWith(".SF") || name.endsWith(".MF") || name.endsWith(".RSA"))) continue;
-                srcZFile.addFileLink(name, name);
+                if (name.startsWith("classes") && name.endsWith(".dex") && !name.contains("/")){
+                    int indexStart = name.indexOf(".");
+                    String c = name.substring(7,indexStart);
+                    if (c.isEmpty()){
+                        srcZFile.addFileLink(name, "classes2.dex");
+                    }else {
+                        srcZFile.addFileLink(name, "classes" + (Integer.parseInt(c) + 1) + ".dex");
+                    }
+                }else {
+                    if (dstZFile.get(name) != null) continue;
+                    if (name.equals("AndroidManifest.xml")) continue;
+                    if (name.startsWith("META-INF") && (name.endsWith(".SF") || name.endsWith(".MF") || name.endsWith(".RSA"))) continue;
+
+                    srcZFile.addFileLink(name, name);
+                }
+
             }
 
             dstZFile.realign();
