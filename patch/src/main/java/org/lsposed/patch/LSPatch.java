@@ -263,12 +263,7 @@ public class LSPatch {
                 throw new PatchError("Error when saving config");
             }
 
-            logger.i("Adding metaloader dex...");
-            try (var is = getClass().getClassLoader().getResourceAsStream(Constants.META_LOADER_DEX_ASSET_PATH)) {
-                dstZFile.add("classes.dex", is);
-            } catch (Throwable e) {
-                throw new PatchError("Error when adding dex", e);
-            }
+
 
             if (isInjectProvider){
                 try (var is = getClass().getClassLoader().getResourceAsStream("assets/provider.dex")) {
@@ -313,22 +308,23 @@ public class LSPatch {
 
             for (StoredEntry entry : srcZFile.entries()) {
                 String name = entry.getCentralDirectoryHeader().getName();
-                if (name.startsWith("classes") && name.endsWith(".dex") && !name.contains("/")){
-                    int indexStart = name.indexOf(".");
-                    String c = name.substring(7,indexStart);
-                    if (c.isEmpty()){
-                        srcZFile.addFileLink(name, "classes2.dex");
-                    }else {
-                        srcZFile.addFileLink(name, "classes" + (Integer.parseInt(c) + 1) + ".dex");
-                    }
-                }else {
-                    if (dstZFile.get(name) != null) continue;
-                    if (name.equals("AndroidManifest.xml")) continue;
-                    if (name.startsWith("META-INF") && (name.endsWith(".SF") || name.endsWith(".MF") || name.endsWith(".RSA"))) continue;
+                if (dstZFile.get(name) != null) continue;
+                if (name.equals("AndroidManifest.xml")) continue;
+                if (name.startsWith("META-INF") && (name.endsWith(".SF") || name.endsWith(".MF") || name.endsWith(".RSA"))) continue;
+                srcZFile.addFileLink(name, name);
+            }
 
-                    srcZFile.addFileLink(name, name);
+            logger.i("Adding metaloader dex...");
+            try (var is = getClass().getClassLoader().getResourceAsStream(Constants.META_LOADER_DEX_ASSET_PATH)) {
+                for (int i=2;i<99;i++){
+                    if (srcZFile.get("classes" + i + ".dex") == null){
+                        dstZFile.add("classes" + i + ".dex", is);
+                        break;
+                    }
                 }
 
+            } catch (Throwable e) {
+                throw new PatchError("Error when adding dex", e);
             }
 
             dstZFile.realign();

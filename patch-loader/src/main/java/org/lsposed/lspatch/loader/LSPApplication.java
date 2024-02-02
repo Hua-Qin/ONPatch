@@ -80,6 +80,7 @@ public class LSPApplication {
             return;
         }
         activityThread = ActivityThread.currentActivityThread();
+
         var context = createLoadedApkWithContext();
         if (context == null) {
             XLog.e(TAG, "Error when creating context");
@@ -121,13 +122,29 @@ public class LSPApplication {
             XposedBridge.setLogPrinter(new XposedLogPrinter(0,"OPatch"));
         }
         Log.i(TAG, "Load modules");
-        LSPLoader.initModules(appLoadedApk);
+        LSPLoader.initModules(stubLoadedApk);
+        Log.i(TAG, "App ClassLoader:" + stubLoadedApk.getClassLoader());
         Log.i(TAG, "Modules initialized");
 
         switchAllClassLoader();
         SigBypass.doSigBypass(context, config.sigBypassLevel);
 
         Log.i(TAG, "LSPatch bootstrap completed");
+    }
+    private static void fromJsonString(String s)throws Exception{
+        JSONObject jsonObject = new JSONObject(s);
+        config = new PatchConfig(
+                jsonObject.optBoolean("useManager"),
+                jsonObject.optBoolean("debuggable"),
+
+                jsonObject.optBoolean("overrideVersionCode"),
+                jsonObject.optInt("sigBypassLevel"),
+                jsonObject.optString("originalSignature"),
+                jsonObject.optString("appComponentFactory"),
+                jsonObject.optBoolean("injectProvider"),
+                jsonObject.optBoolean("outputLog")
+                );
+
     }
 
     private static Context createLoadedApkWithContext() {
@@ -140,9 +157,23 @@ public class LSPApplication {
             var compatInfo = (CompatibilityInfo) XposedHelpers.getObjectField(mBoundApplication, "compatInfo");
             var baseClassLoader = stubLoadedApk.getClassLoader();
 
+
+
+
+
+            //var context = (Context) XposedHelpers.callStaticMethod(Class.forName("android.app.ContextImpl"), "createAppContext", activityThread, stubLoadedApk);
+
+
+
+            /***********************************************************/
+
             try (var is = baseClassLoader.getResourceAsStream(CONFIG_ASSET_PATH)) {
                 BufferedReader streamReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-                config = new Gson().fromJson(streamReader, PatchConfig.class);
+                StringBuilder responseStrBuilder = new StringBuilder();
+                String inputStr;
+                while ((inputStr = streamReader.readLine()) != null)
+                    responseStrBuilder.append(inputStr);
+                fromJsonString(responseStrBuilder.toString());
             } catch (IOException e) {
                 Log.e(TAG, "Failed to load config file");
                 return null;
@@ -157,12 +188,6 @@ public class LSPApplication {
             }
             String sourceFileaa = appInfo.sourceDir;
 
-            appInfo.sourceDir = cacheApkPath.toString();
-            appInfo.publicSourceDir = cacheApkPath.toString();
-            appInfo.appComponentFactory = config.appComponentFactory;
-
-
-
 
             if (!Files.exists(cacheApkPath)) {
                 Log.i(TAG, "Extract original apk");
@@ -172,6 +197,11 @@ public class LSPApplication {
                     Files.copy(is, cacheApkPath);
                 }
             }
+            appInfo.sourceDir = cacheApkPath.toString();
+            appInfo.publicSourceDir = cacheApkPath.toString();
+
+            /***********************************************************/
+
             Path providerPath = null;
             if (config.injectProvider){
                 try (ZipFile sourceFile = new ZipFile(sourceFileaa)) {
@@ -188,14 +218,9 @@ public class LSPApplication {
 
             cacheApkPath.toFile().setWritable(false);
 
-            var mPackages = (Map<?, ?>) XposedHelpers.getObjectField(activityThread, "mPackages");
-            mPackages.remove(appInfo.packageName);
-            appLoadedApk = activityThread.getPackageInfoNoCheck(appInfo, compatInfo);
-
-
 
             if (config.injectProvider){
-                ClassLoader loader = appLoadedApk.getClassLoader();
+                ClassLoader loader = stubLoadedApk.getClassLoader();
                 Object dexPathList = XposedHelpers.getObjectField(loader, "pathList");
                 Object dexElements = XposedHelpers.getObjectField(dexPathList, "dexElements");
                 int length = Array.getLength(dexElements);
@@ -210,9 +235,9 @@ public class LSPApplication {
                 XposedHelpers.setObjectField(dexPathList, "dexElements", newElements);
             }
 
-
-
-
+            var mPackages = (Map<?, ?>) XposedHelpers.getObjectField(activityThread, "mPackages");
+            mPackages.remove(appInfo.packageName);
+            appLoadedApk = activityThread.getPackageInfoNoCheck(appInfo, compatInfo);
             XposedHelpers.setObjectField(mBoundApplication, "info", appLoadedApk);
 
             var activityClientRecordClass = XposedHelpers.findClass("android.app.ActivityThread$ActivityClientRecord", ActivityThread.class.getClassLoader());
@@ -236,6 +261,8 @@ public class LSPApplication {
             }
             Log.i(TAG, "hooked app initialized: " + appLoadedApk);
 
+
+
             var context = (Context) XposedHelpers.callStaticMethod(Class.forName("android.app.ContextImpl"), "createAppContext", activityThread, stubLoadedApk);
             if (config.appComponentFactory != null) {
                 try {
@@ -245,9 +272,26 @@ public class LSPApplication {
                     appInfo.appComponentFactory = null;
                 }
             }
+
+
+
+            appInfo.appComponentFactory = config.appComponentFactory;
+            if (config.appComponentFactory != null) {
+                try {
+                    context.getClassLoader().loadClass(config.appComponentFactory);
+                } catch (ClassNotFoundException e) { // This will happen on some strange shells like 360
+                    Log.w(TAG, "Original AppComponentFactory not found: " + config.appComponentFactory);
+                    appInfo.appComponentFactory = null;
+                }
+            }
+
+
+
+
+
             Log.i(TAG,"createLoadedApkWithContext cost: " + (System.currentTimeMillis() - timeStart) + "ms");
 
-            SigBypass.replaceApplication(appInfo.packageName, appInfo.sourceDir, appInfo.publicSourceDir);
+            SigBypass.replaceApplication(appInfo.packageName, cacheApkPath.toString(), appInfo.publicSourceDir);
             return context;
         } catch (Throwable e) {
             Log.e(TAG, "createLoadedApk", e);
