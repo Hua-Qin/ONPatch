@@ -221,6 +221,14 @@ public class LSPApplication {
             Log.i(TAG,"createLoadedApkWithContext cost: " + (System.currentTimeMillis() - timeStart) + "ms");
 
             SigBypass.replaceApplication(appInfo.packageName, appInfo.sourceDir, appInfo.publicSourceDir);
+            File[] fs = context.getExternalMediaDirs();
+            if (fs == null || fs.length == 0) {
+                Log.e(TAG, "Failed to get external media dirs");
+            } else {
+                XposedLogPrinter.targetRoot = fs[0];
+                fs[0].mkdirs();
+            }
+
             return context;
         } catch (Throwable e) {
             Log.e(TAG, "createLoadedApk", e);
