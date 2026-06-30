@@ -26,7 +26,7 @@ val commitCount = run {
     val repo = FileRepository(rootProject.file(".git"))
     val ref = repo.refDatabase.exactRef("refs/remotes/origin/main")
         ?: repo.refDatabase.exactRef("refs/remotes/origin/master")
-    val refId = ref?.objectId() ?: repo.resolve("HEAD")!!
+    val refId = ref?.objectId ?: repo.resolve("HEAD")!!
     Git(repo).log().add(refId).call().count()
 }
 
