@@ -38,7 +38,7 @@ jobs:
       run: |
         git clone https://github.com/libxposed/api.git libxposed/api
         cd libxposed/api
-        git checkout 55efdf9
+        git checkout 4be04fc
 
     - name: Checkout libxposed/service
       uses: actions/checkout@v4
