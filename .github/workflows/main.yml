@@ -35,12 +35,10 @@ jobs:
         fi
 
     - name: Checkout libxposed/api
-      uses: actions/checkout@v4
-      with:
-        repository: libxposed/api
-        ref: '55efdf9'
-        path: libxposed/api
-        fetch-depth: 0
+      run: |
+        git clone https://github.com/libxposed/api.git libxposed/api
+        cd libxposed/api
+        git checkout 55efdf9
 
     - name: Checkout libxposed/service
       uses: actions/checkout@v4
