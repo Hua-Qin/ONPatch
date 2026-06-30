@@ -38,7 +38,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: libxposed/api
-        ref: '100'
+        ref: '55efdf9'
         path: libxposed/api
 
     - name: Checkout libxposed/service
@@ -66,40 +66,6 @@ jobs:
         key: ${{ runner.os }}
         restore-keys: ${{ runner.os }}
         save: ${{ github.event_name == 'push' }}
-
-    - name: Inject missing annotations into libxposed/api
-      run: |
-        mkdir -p libxposed/api/api/src/main/java/io/github/libxposed/api/annotations
-        cat > libxposed/api/api/src/main/java/io/github/libxposed/api/annotations/XposedHooker.java << 'JAVA'
-        package io.github.libxposed.api.annotations;
-        import java.lang.annotation.ElementType;
-        import java.lang.annotation.Retention;
-        import java.lang.annotation.RetentionPolicy;
-        import java.lang.annotation.Target;
-        @Retention(RetentionPolicy.RUNTIME)
-        @Target({ElementType.TYPE, ElementType.TYPE_USE})
-        public @interface XposedHooker {}
-        JAVA
-        cat > libxposed/api/api/src/main/java/io/github/libxposed/api/annotations/BeforeInvocation.java << 'JAVA'
-        package io.github.libxposed.api.annotations;
-        import java.lang.annotation.ElementType;
-        import java.lang.annotation.Retention;
-        import java.lang.annotation.RetentionPolicy;
-        import java.lang.annotation.Target;
-        @Retention(RetentionPolicy.RUNTIME)
-        @Target(ElementType.METHOD)
-        public @interface BeforeInvocation {}
-        JAVA
-        cat > libxposed/api/api/src/main/java/io/github/libxposed/api/annotations/AfterInvocation.java << 'JAVA'
-        package io.github.libxposed.api.annotations;
-        import java.lang.annotation.ElementType;
-        import java.lang.annotation.Retention;
-        import java.lang.annotation.RetentionPolicy;
-        import java.lang.annotation.Target;
-        @Retention(RetentionPolicy.RUNTIME)
-        @Target(ElementType.METHOD)
-        public @interface AfterInvocation {}
-        JAVA
 
     - name: Build libxposed dependencies
       working-directory: libxposed
