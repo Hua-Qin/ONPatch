@@ -38,7 +38,7 @@ jobs:
       run: |
         git clone https://github.com/libxposed/api.git libxposed/api
         cd libxposed/api
-        git checkout 4be04fc
+        git checkout 55efdf9
 
     - name: Checkout libxposed/service
       uses: actions/checkout@v4
@@ -72,7 +72,7 @@ jobs:
         echo 'org.gradle.parallel=true' >> ~/.gradle/gradle.properties
         echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8' >> ~/.gradle/gradle.properties
         cd api
-        ./gradlew :api:publishToMavenLocal
+        ./gradlew :api:publishToMavenLocal -x :checks:compileKotlin
         cd ../service
         ./gradlew :interface:publishToMavenLocal
 
