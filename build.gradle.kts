@@ -24,7 +24,9 @@ buildscript {
 
 val commitCount = run {
     val repo = FileRepository(rootProject.file(".git"))
-    val refId = repo.refDatabase.exactRef("refs/remotes/origin/master").objectId!!
+    val ref = repo.refDatabase.exactRef("refs/remotes/origin/main")
+        ?: repo.refDatabase.exactRef("refs/remotes/origin/master")
+    val refId = ref?.objectId ?: repo.resolve("HEAD")!!
     Git(repo).log().add(refId).call().count()
 }
 
@@ -45,7 +47,7 @@ val (coreCommitCount, coreLatestTag) = FileRepositoryBuilder().setGitDir(rootPro
 
 // sync from https://github.com/LSPosed/LSPosed/blob/master/build.gradle.kts
 val defaultManagerPackageName by extra("org.lsposed.opatch")
-val apiCode by extra(93)
+val apiCode by extra(102)
 val verCode by extra(7)
 val verName by extra("0.0.7")
 val coreVerCode by extra(coreCommitCount)
