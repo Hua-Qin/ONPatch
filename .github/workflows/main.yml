@@ -34,6 +34,37 @@ jobs:
           echo ${{ secrets.KEY_STORE }} | base64 --decode > key.jks
         fi
 
+    - name: Patch LSPosedContext for api 55efdf9 compatibility
+      run: |
+        python3 << 'PYEOF'
+        f = 'core/core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java'
+        with open(f, 'r') as fh:
+            lines = fh.readlines()
+        # Find the line with "return HookBridge.invokeSpecialMethod(method,"
+        # and insert new method after the closing brace of that method block
+        insert_lines = [
+            '\n',
+            '    @Override\n',
+            '    public <T> void invokeSpecial(@NonNull Constructor<T> constructor, @NonNull T thisObject, Object... args) throws InvocationTargetException, IllegalArgumentException, IllegalAccessException {\n',
+            '        HookBridge.invokeSpecialMethod(constructor, getExecutableShorty(constructor), constructor.getDeclaringClass(), thisObject, args);\n',
+            '    }\n',
+        ]
+        new_lines = []
+        i = 0
+        while i < len(lines):
+            new_lines.append(lines[i])
+            if 'return HookBridge.invokeSpecialMethod(method,' in lines[i]:
+                # This line is inside invokeSpecial(Method,...)
+                # Next line should be the closing brace "    }"
+                i += 1
+                new_lines.append(lines[i])  # the "    }"
+                for il in insert_lines:
+                    new_lines.append(il)
+            i += 1
+        with open(f, 'w') as fh:
+            fh.writelines(new_lines)
+        PYEOF
+
     - name: Checkout libxposed/api
       run: |
         git clone https://github.com/libxposed/api.git libxposed/api
