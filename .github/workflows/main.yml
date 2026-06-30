@@ -34,6 +34,20 @@ jobs:
           echo ${{ secrets.KEY_STORE }} | base64 --decode > key.jks
         fi
 
+    - name: Checkout libxposed/api
+      uses: actions/checkout@v4
+      with:
+        repository: libxposed/api
+        ref: '100'
+        path: libxposed/api
+
+    - name: Checkout libxposed/service
+      uses: actions/checkout@v4
+      with:
+        repository: libxposed/service
+        ref: '100'
+        path: libxposed/service
+
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
@@ -53,11 +67,15 @@ jobs:
         restore-keys: ${{ runner.os }}
         save: ${{ github.event_name == 'push' }}
 
-    - name: Patch libxposed version for Maven Central
+    - name: Build libxposed dependencies
+      working-directory: libxposed
       run: |
-        sed -i 's/libxposed = "100"/libxposed = "102.0.0"/' core/gradle/libs.versions.toml
-        echo "Patched libxposed version to 102.0.0"
-        grep libxposed core/gradle/libs.versions.toml
+        echo 'org.gradle.parallel=true' >> ~/.gradle/gradle.properties
+        echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8' >> ~/.gradle/gradle.properties
+        cd api
+        ./gradlew publishToMavenLocal
+        cd ../service
+        ./gradlew publishToMavenLocal
 
     - name: Build with Gradle
       run: |
