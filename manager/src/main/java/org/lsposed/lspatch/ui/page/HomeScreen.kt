@@ -3,24 +3,16 @@ package org.lsposed.lspatch.ui.page
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,9 +20,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import kotlinx.coroutines.launch
 import org.lsposed.lspatch.GlobalUserHandler
-import org.lsposed.lspatch.JUtils
 import org.lsposed.lspatch.R
-import org.lsposed.lspatch.lspApp
 import org.lsposed.lspatch.share.LSPConfig
 import org.lsposed.lspatch.ui.component.CenterTopBar
 import org.lsposed.lspatch.ui.util.HtmlText
@@ -51,91 +41,9 @@ fun HomeScreen() {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            ShizukuCard()
             InfoCard()
             SupportCard()
             Spacer(Modifier)
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ShizukuCard() {
-
-    ElevatedCard(
-        colors = CardDefaults.elevatedCardColors(containerColor = run {
-            if (JUtils.isGenshinInstalled(lspApp)) MaterialTheme.colorScheme.secondaryContainer
-            else MaterialTheme.colorScheme.errorContainer
-        })
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    if (!JUtils.isGenshinInstalled(lspApp)) {
-                        val intent = Intent()
-                        intent.action = "android.intent.action.VIEW"
-                        val content_url =
-                            "https://ys-api.mihoyo.com/event/download_porter/link/ys_cn/official/android_default"
-                        intent.data = Uri.parse(content_url)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        lspApp.startActivity(intent)
-                    } else {
-                        var intent =
-                            lspApp.packageManager.getLaunchIntentForPackage("com.miHoYo.Yuanshen")
-                        if (intent == null) {
-                            intent =
-                                lspApp.packageManager.getLaunchIntentForPackage("com.miHoYo.cloudgames.ys")
-                        }
-                        if (intent == null) {
-                            intent =
-                                lspApp.packageManager.getLaunchIntentForPackage("com.miHoYo.GenshinImpact")
-                        }
-                        if (intent == null) {
-                            intent =
-                                lspApp.packageManager.getLaunchIntentForPackage("com.miHoYo.ys.bilibili")
-                        }
-                        if (intent == null) {
-                            intent =
-                                lspApp.packageManager.getLaunchIntentForPackage("com.miHoYo.ys.mi")
-                        }
-                        intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        lspApp.startActivity(intent)
-                    }
-                }
-                .padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (JUtils.isGenshinInstalled(lspApp)) {
-                Icon(Icons.Outlined.CheckCircle, stringResource(R.string.shizuku_available))
-                Column(Modifier.padding(start = 20.dp)) {
-                    Text(
-                        text = stringResource(R.string.shizuku_available),
-                        fontFamily = FontFamily.Serif,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = JUtils.getFullGenshinImpactVersionInfo(lspApp),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            } else {
-                Icon(Icons.Outlined.Warning, stringResource(R.string.shizuku_unavailable))
-                Column(Modifier.padding(start = 20.dp)) {
-                    Text(
-                        text = stringResource(R.string.shizuku_unavailable),
-                        fontFamily = FontFamily.Serif,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.home_shizuku_warning),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
         }
     }
 }

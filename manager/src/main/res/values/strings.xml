@@ -7,8 +7,8 @@
     <string name="copy_error">Copy error</string>
     <string name="apps">Apps</string>
     <string name="modules">Modules</string>
-    <string name="shizuku_available">Genshin Impact available</string>
-    <string name="shizuku_unavailable">Genshin Impact Not Available</string>
+    <string name="shizuku_available">Available</string>
+    <string name="shizuku_unavailable">Unavailable</string>
     <string name="screen_repo">Repo</string>
     <string name="screen_logs">Logs</string>
     <string name="off">Off</string>
@@ -24,7 +24,7 @@
     <string name="home_system_abi">System ABI</string>
     <string name="home_info_copied">Copied to clipboard</string>
     <string name="home_support">Support</string>
-    <string name="home_description">LSPatch is a free non-root Xposed framework based on LSPosed core.</string>
+    <string name="home_description">OPatch is a free non-root Xposed framework based on LSPosed core.</string>
     <string name="home_view_source_code"><![CDATA[View source code at %1$s<br/>Join our %2$s channel]]></string>
 
     <!-- Manage Screen -->
@@ -61,7 +61,7 @@
     <string name="patch_inject_mt_provider" translatable="false">Inject Files Provider</string>
     <string name="patch_inject_mt_provider_desc" translatable="false">Inject file providers to manage files in the data directory without root privileges</string>
     <string name="output_log_to_media" translatable="false">output log to media path</string>
-    <string name="output_log_to_media_desc" translatable="false">将模块的xposed日志到被注入原神的App的media目录</string>
+    <string name="output_log_to_media_desc" translatable="false">Output xposed log of the module to the patched App\'s media directory</string>
     <string name="patch_sigbypass">Signature bypass</string>
     <string name="patch_sigbypasslv0">lv0: Off</string>
     <string name="patch_sigbypasslv1">lv1: Bypass PM</string>
