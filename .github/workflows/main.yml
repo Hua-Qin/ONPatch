@@ -124,8 +124,8 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1.2
       with:
         max-size: 2G
-        key: ${{ runner.os }}
-        restore-keys: ${{ runner.os }}
+        key: ${{ runner.os }}-v2
+        restore-keys: ${{ runner.os }}-v2
         save: ${{ github.event_name == 'push' }}
 
     - name: Build libxposed dependencies
