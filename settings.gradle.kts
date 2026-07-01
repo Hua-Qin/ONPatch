@@ -54,4 +54,4 @@ project(":services:daemon-service").projectDir = file("core/services/daemon-serv
 project(":services:manager-service").projectDir = file("core/services/manager-service")
 project(":services:xposed-service:interface").projectDir = file("core/services/xposed-service/interface")
 
-buildCache { local { removeUnusedEntriesAfterDays = 1 } }
+
