@@ -31,6 +31,10 @@ jobs:
         git checkout df74d83eb03a44cc6ad268841ac2ada28d077c77
         git submodule update --init --recursive
 
+    - name: Init manifest-editor submodule
+      run: |
+        git submodule update --init patch/libs/manifest-editor
+
     - name: Checkout libxposed/api
       run: |
         git clone https://github.com/libxposed/api.git libxposed/api
