@@ -20,14 +20,29 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        submodules: 'recursive'
+        submodules: 'false'
         fetch-depth: 0
+
+    - name: Checkout core submodule manually
+      run: |
+        rm -rf core
+        git clone --depth 2000 https://github.com/LSPosed/LSPosed.git core
+        cd core
+        git checkout df74d83eb03a44cc6ad268841ac2ada28d077c77
+        git submodule update --init --recursive
+
+    - name: Checkout libxposed/api
+      run: |
+        git clone https://github.com/libxposed/api.git libxposed/api
+        cd libxposed/api
+        git checkout 55efdf9
+        cd ../..
 
     - name: Write key
       if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
       run: |
         if [ ! -z "${{ secrets.KEY_STORE }}" ]; then
-          echo androidStorePassword='${{ secrets.KEY_STORE_PASSWORD }}' >> gradle.properties
+          echo androidStorePassword='${{ secrets.KEY_STORE }}' >> gradle.properties
           echo androidKeyAlias='${{ secrets.ALIAS }}' >> gradle.properties
           echo androidKeyPassword='${{ secrets.KEY_PASSWORD }}' >> gradle.properties
           echo androidStoreFile='key.jks' >> gradle.properties
@@ -86,12 +101,6 @@ jobs:
         with open(f, 'w') as fh:
             fh.writelines(new_lines)
         PYEOF
-
-    - name: Checkout libxposed/api
-      run: |
-        git clone https://github.com/libxposed/api.git libxposed/api
-        cd libxposed/api
-        git checkout 55efdf9
 
     - name: Checkout libxposed/service
       uses: actions/checkout@v4
