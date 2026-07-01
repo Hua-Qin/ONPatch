@@ -116,7 +116,11 @@ public class LSPApplication {
         // before forkPostCommon is invoke. Otherwise, you will get failure of XResources
 
         if (config.outputLog){
-            XposedBridge.setLogPrinter(new XposedLogPrinter(0,"OPatch"));
+            try {
+                java.lang.reflect.Method setLogPrinter = XposedBridge.class.getMethod("setLogPrinter", android.util.Printer.class);
+                setLogPrinter.invoke(null, new XposedLogPrinter(0, "OPatch"));
+            } catch (Throwable ignored) {
+            }
         }
         Log.i(TAG, "Load modules");
         LSPLoader.initModules(stubLoadedApk);

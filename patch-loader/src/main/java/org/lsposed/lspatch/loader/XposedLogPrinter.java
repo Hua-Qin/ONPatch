@@ -13,6 +13,8 @@ import java.util.Date;
 
 public class XposedLogPrinter extends LogPrinter {
 
+    public static File targetRoot;
+
     /**
      * Create a new Printer that sends to the log with the given priority
      * and tag.
@@ -38,7 +40,8 @@ public class XposedLogPrinter extends LogPrinter {
     private static synchronized void writeLine(String text){
         try {
             if (out == null){
-                File f = new File(Environment.getExternalStorageDirectory() + "/Android/media/" + ActivityThread.currentPackageName() + "/opatch/log/");
+                File baseDir = targetRoot != null ? targetRoot : Environment.getExternalStorageDirectory();
+                File f = new File(baseDir + "/Android/media/" + ActivityThread.currentPackageName() + "/opatch/log/");
                 f.mkdirs();
                 out = new FileOutputStream(new File(f,format.format(new Date()) + ".log"),true);
             }
